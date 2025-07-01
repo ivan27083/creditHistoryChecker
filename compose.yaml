@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+
+  postgres-person:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: persondb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5433:5432"
+
+  postgres-credit:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: creditdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5434:5432"
+
+  person-data-service:
+    build: ./person-data-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-person
+
+  credit-history-service:
+    build: ./credit-history-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-credit
+
+  central-service:
+    build: ./central-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - person-data-service
+      - credit-history-service

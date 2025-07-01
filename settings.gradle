@@ -1,0 +1,5 @@
+rootProject.name = 'creditHistoryChecker'
+
+include 'centralService'
+include 'userService'
+include 'postsService'

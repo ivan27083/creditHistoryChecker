@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AmplicodeJpaPluginProjectSettings">
+    <option name="lastSelectedLanguage" value="Java" />
+  </component>
+  <component name="AmplicodeModuleSettings">
+    <modules>
+      <module name="creditHistoryChecker.centralService.main">
+        <sourceRoots>
+          <sourceRoot>src/main/java</sourceRoot>
+        </sourceRoots>
+        <resourceRoots>
+          <resourceRoot>src/main/resources</resourceRoot>
+        </resourceRoots>
+      </module>
+      <module name="creditHistoryChecker.personDataService.main">
+        <sourceRoots>
+          <sourceRoot>src/main/java</sourceRoot>
+        </sourceRoots>
+        <resourceRoots>
+          <resourceRoot>src/main/resources</resourceRoot>
+        </resourceRoots>
+      </module>
+      <module name="creditHistoryChecker.creditHistoryService.main">
+        <sourceRoots>
+          <sourceRoot>src/main/java</sourceRoot>
+        </sourceRoots>
+        <resourceRoots>
+          <resourceRoot>src/main/resources</resourceRoot>
+        </resourceRoots>
+      </module>
+    </modules>
+  </component>
+  <component name="AmplicodePersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit moduleName="creditHistoryChecker.centralService.main" name="Default">
+        <packages>
+          <package value="com.centralService" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="creditHistoryChecker.postsService.main" name="Default">
+        <packages>
+          <package value="com.postsService" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="creditHistoryChecker.userService.main" name="Default">
+        <packages>
+          <package value="com.userService" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
+</project>
