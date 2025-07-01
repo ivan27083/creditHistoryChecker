@@ -13,7 +13,7 @@ public class HibernateConfiguration {
         org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
         try {
             return configuration
-                    .addPackage("com.creditHistoryService.model")
+                    .addPackage("com.postsService.model")
                     .setProperty("hibernate.connection.driver_class", "org.postgresql.Driver")
                     .setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/mydb")
                     .setProperty("hibernate.connection.username", "postgres")
