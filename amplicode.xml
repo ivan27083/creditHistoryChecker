@@ -33,17 +33,12 @@
   </component>
   <component name="AmplicodePersistenceUnitSettings">
     <persistence-units>
-      <persistence-unit moduleName="creditHistoryChecker.centralService.main" name="Default">
-        <packages>
-          <package value="com.centralService" />
-        </packages>
-      </persistence-unit>
-      <persistence-unit moduleName="creditHistoryChecker.postsService.main" name="Default">
+      <persistence-unit moduleName="socialNetwork.postsService.main" name="Default">
         <packages>
           <package value="com.postsService" />
         </packages>
       </persistence-unit>
-      <persistence-unit moduleName="creditHistoryChecker.userService.main" name="Default">
+      <persistence-unit moduleName="socialNetwork.userService.main" name="Default">
         <packages>
           <package value="com.userService" />
         </packages>
