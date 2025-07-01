@@ -2,6 +2,7 @@ package com.userService.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "user_")
 public class User {
     @Id
@@ -27,7 +29,7 @@ public class User {
     private String password;
 
     @Column(name = "created_at")
-    private LocalDate created_at;
+    private LocalDate created_at = LocalDate.now();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

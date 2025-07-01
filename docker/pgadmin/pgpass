@@ -1,0 +1,1 @@
+social_network_db:5432:users_db:postgres:postgres_secret

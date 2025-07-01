@@ -29,18 +29,6 @@ public class UserService {
         return userRepository.count();
     }
 
-    public void delete(User entity) {
-        userRepository.delete(entity);
-    }
-
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    public User save(User entity) {
-        return userRepository.save(entity);
-    }
-
     public Optional<UserDto> findById(Integer id) {
         Optional<User> userOptional = userRepository.findById(id);
         return userOptional.map(userMapper::toUserDto);
@@ -109,5 +97,9 @@ public class UserService {
 
     public void deleteMany(List<Integer> ids) {
         userRepository.deleteAllById(ids);
+    }
+
+    public UserDto findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }
