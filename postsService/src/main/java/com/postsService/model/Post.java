@@ -24,13 +24,8 @@ public class Post {
     @Column(name = "title")
     private String title;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "post_images",
-            joinColumns = @JoinColumn(name = "post_id")
-    )
-    @Column(name = "image_url", length = 2048) // Ссылки на изображения (ImgBB/S3)
-    private List<String> imageUrls = new ArrayList<>(9);
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>(9);
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
