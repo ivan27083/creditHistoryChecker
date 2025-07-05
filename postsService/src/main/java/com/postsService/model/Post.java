@@ -24,10 +24,13 @@ public class Post {
     @Column(name = "title")
     private String title;
 
+    @Lob
+    @Column(name = "text")
+    private String text;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images = new ArrayList<>(9);
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
-
 }

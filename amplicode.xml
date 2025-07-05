@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AmplicodeDatabaseMigrationSettings" lastSelectedDirectory="db/changelog/#date(&quot;yyyy&quot;)/#date(&quot;MM&quot;)" liquibaseFileType="YAML">
+    <database-infos>
+      <database-info>
+        <option name="enabled" value="true" />
+        <dbms-id>postgres</dbms-id>
+      </database-info>
+    </database-infos>
+  </component>
   <component name="AmplicodeJpaPluginProjectSettings">
     <option name="lastSelectedLanguage" value="Java" />
   </component>
@@ -33,7 +41,7 @@
   </component>
   <component name="AmplicodePersistenceUnitSettings">
     <persistence-units>
-      <persistence-unit moduleName="socialNetwork.postsService.main" name="Default" defaultIncludeChangeLogFile="userService/src/main/resources/db/changelog/db.changelog-master.xml">
+      <persistence-unit moduleName="socialNetwork.postsService.main" name="Default" defaultIncludeChangeLogFile="userService/src/main/resources/changelog/db.changelog-master.xml">
         <packages>
           <package value="com.postsService" />
         </packages>

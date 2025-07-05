@@ -7,7 +7,7 @@ services:
     image: postgres:17.5
     restart: "no"
     ports:
-      - "5432:5432"
+      - "5431:5432"
     volumes:
       - social_network_db_data:/var/lib/postgresql/data
     environment:

@@ -1,7 +1,16 @@
 package com.userService.model;
 
+import jakarta.validation.constraints.Email;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * DTO for {@link User}
+ */
+@AllArgsConstructor
+@Getter
 public class RegisterRequest {
-    public String username;
-    public String email;
-    public String password;
+    @Email
+    private final String email;
+    private final String password;
 }

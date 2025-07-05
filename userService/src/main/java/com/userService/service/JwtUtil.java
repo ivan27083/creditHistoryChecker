@@ -11,7 +11,7 @@ import java.util.Date;
 public class JwtUtil {
 
     public String generateToken(String username) {
-        String secret = "SECRET_KEY";
+        String secret = "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnnmqwertyuiopasdfghjklzxcvbnm";
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())

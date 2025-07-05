@@ -1,105 +1,56 @@
 package com.userService.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.userService.model.RegisterRequest;
 import com.userService.model.User;
-import com.userService.model.UserDto;
 import com.userService.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Service
-public class UserService {
-
-    private final UserRepository userRepository;
-
-    private final UserMapper userMapper;
-
-    private final ObjectMapper objectMapper;
-
-    public long count() {
-        return userRepository.count();
+@Transactional
+public class UserService{
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PasswordEncoder encoder;
+    public void delete(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        new ArrayList<>(user.getSubscribedTo()).forEach(user::unsubscribeFrom);
+        new ArrayList<>(user.getSubscribers()).forEach(u -> u.unsubscribeFrom(user));
+        userRepository.delete(user);
     }
 
-    public Optional<UserDto> findById(Integer id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        return userOptional.map(userMapper::toUserDto);
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 
-    public List<UserDto> getAll() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(userMapper::toUserDto)
-                .toList();
-    }
-
-    public UserDto getOne(Integer id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        return userMapper.toUserDto(userOptional.orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `%s` not found".formatted(id))));
-    }
-
-    public List<UserDto> getMany(List<Integer> ids) {
-        List<User> users = userRepository.findAllById(ids);
-        return users.stream()
-                .map(userMapper::toUserDto)
-                .toList();
-    }
-
-    public UserDto create(UserDto dto) {
-        User user = userMapper.toEntity(dto);
-        User resultUser = userRepository.save(user);
-        return userMapper.toUserDto(resultUser);
-    }
-
-    public UserDto patch(Integer id, JsonNode patchNode) throws IOException {
-        User user = userRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with id `%s` not found".formatted(id)));
-
-        UserDto userDto = userMapper.toUserDto(user);
-        objectMapper.readerForUpdating(userDto).readValue(patchNode);
-        userMapper.updateWithNull(userDto, user);
-
-        User resultUser = userRepository.save(user);
-        return userMapper.toUserDto(resultUser);
-    }
-
-    public List<Integer> patchMany(List<Integer> ids, JsonNode patchNode) throws IOException {
-        Collection<User> users = userRepository.findAllById(ids);
-
-        for (User user : users) {
-            UserDto userDto = userMapper.toUserDto(user);
-            objectMapper.readerForUpdating(userDto).readValue(patchNode);
-            userMapper.updateWithNull(userDto, user);
-        }
-
-        List<User> resultUsers = userRepository.saveAll(users);
-        return resultUsers.stream()
-                .map(User::getId)
-                .toList();
-    }
-
-    public UserDto delete1(Integer id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            userRepository.delete(user);
-        }
-        return userMapper.toUserDto(user);
-    }
-
-    public void deleteMany(List<Integer> ids) {
-        userRepository.deleteAllById(ids);
-    }
-
-    public UserDto findByEmail(String email) {
+    public User findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findById(Integer id) {
+        return userRepository.findById(id);
+    }
+
+    public User save(RegisterRequest request) {
+        User entity = new User();
+        if (request != null) {
+            entity.setEmail(request.getEmail());
+            if (request.getPassword() != null) {
+                if (!request.getPassword().isEmpty()) {
+                    entity.setPassword(encoder.encode(request.getPassword()));
+                }
+            }
+        }
+        return userRepository.save(entity);
     }
 }

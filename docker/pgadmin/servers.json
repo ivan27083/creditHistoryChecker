@@ -4,7 +4,7 @@
       "Group" : "Servers",
       "Name" : "social_network_db",
       "Host" : "socialnetwork-social_network_db-1",
-      "Port" : 5432,
+      "Port" : 5431,
       "MaintenanceDB" : "users_db",
       "Username" : "postgres",
       "PassFile" : "/pgadmin4/pgpass",
