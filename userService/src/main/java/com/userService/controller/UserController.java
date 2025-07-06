@@ -21,19 +21,16 @@ public class UserController {
     }
 
     @GetMapping
-    @ResponseBody
     public List<User> findAll() {
         return userService.findAll();
     }
 
     @GetMapping("/email/{email}")
-    @ResponseBody
     public User findByEmail(@PathVariable String email) {
         return userService.findByEmail(email);
     }
 
     @GetMapping("/id/{id}")
-    @ResponseBody
     public Optional<User> findById(@PathVariable Integer id) {
         return userService.findById(id);
     }

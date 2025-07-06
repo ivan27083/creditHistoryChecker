@@ -4,7 +4,6 @@ import com.userService.model.RegisterRequest;
 import com.userService.model.User;
 import com.userService.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
