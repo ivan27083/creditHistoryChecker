@@ -7,8 +7,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class userServiceApplication {
 
     public static void main(String[] args){
-        AnnotationConfigApplicationContext context =
-                new AnnotationConfigApplicationContext("com.userService");
         SpringApplication.run(userServiceApplication.class, args);
     }
 
