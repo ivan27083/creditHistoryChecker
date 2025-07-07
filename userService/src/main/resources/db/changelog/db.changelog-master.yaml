@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - - include:
+        file: db/changelog/init.yaml
+  - changeSet:
+      id:  empty-example
+      author:  liquibase-docs
+      changes:
+        -  empty:  {}

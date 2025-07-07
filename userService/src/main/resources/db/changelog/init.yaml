@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: ubrioniks
+      changes:
+        - createTable:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: user_
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: DATE
+                  defaultValueDate: "CURRENT_DATE"
+
+        - createTable:
+            tableName: user_subscription
+            columns:
+              - column:
+                  name: subscriber_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_subscriber
+                    references: user_(id)
+              - column:
+                  name: subscribed_to_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_subscribed_to
+                    references: user_(id)
+            constraints:
+              primaryKey:
+                columnNames: subscriber_id, subscribed_to_id
+                constraintName: pk_user_subscription
+
+        - createTable:
+            tableName: users_roles
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_user
+                    references: user_(id)
+              - column:
+                  name: role_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_role
+                    references: role(id)
+            constraints:
+              unique:
+                columnNames: user_id, role_id
+                constraintName: uk_user_role
+  - changeSet:
+      id: 2
+      author: ubrioniks
+      changes:
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: name
+                  value: "ROLE_USER"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: name
+                  value: "ROLE_MANAGER"

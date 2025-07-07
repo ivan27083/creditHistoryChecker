@@ -17,6 +17,12 @@ public class UserDto {
     String username;
     @PastOrPresent
     LocalDate created_at;
-    Set<Integer> subscribedToIds;
-    Set<Integer> subscriberIds;
+
+    public static UserDto from(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getCreated_at()
+        );
+    }
 }

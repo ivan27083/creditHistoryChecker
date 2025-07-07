@@ -43,12 +43,12 @@ public class User {
     @ManyToMany(mappedBy = "subscribedTo")
     private Set<User> subscribers = new HashSet<>();
 
-    public void subscribeTo(User user) {
+    public void subscribe(User user) {
         this.subscribedTo.add(user);
         user.getSubscribers().add(this);
     }
 
-    public void unsubscribeFrom(User user) {
+    public void unsubscribe(User user) {
         this.subscribedTo.remove(user);
         user.getSubscribers().remove(this);
     }

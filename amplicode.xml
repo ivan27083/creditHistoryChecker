@@ -41,7 +41,7 @@
   </component>
   <component name="AmplicodePersistenceUnitSettings">
     <persistence-units>
-      <persistence-unit moduleName="socialNetwork.postsService.main" name="Default" defaultIncludeChangeLogFile="userService/src/main/resources/changelog/db.changelog-master.xml">
+      <persistence-unit moduleName="socialNetwork.postsService.main" name="Default" defaultIncludeChangeLogFile="userService/src/main/resources/db/changelog/db.changelog-master.yaml">
         <packages>
           <package value="com.postsService" />
         </packages>
