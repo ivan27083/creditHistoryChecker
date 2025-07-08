@@ -1,1 +1,2 @@
-social_network_db:5431:users_db:postgres:postgres_secret
+users_db:5432:users_db:postgres:postgres_secret
+posts_db:5432:posts_db:postgres:postgres_secret

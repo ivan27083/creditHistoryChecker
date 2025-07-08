@@ -1,15 +1,20 @@
 volumes:
-  social_network_db_data:
+  users_db_data:
+  posts_db_data:
   pgadmin_data:
 
+networks:
+  services-network:
+    driver: bridge
+
 services:
-  social_network_db:
+  users_db:
     image: postgres:17.5
     restart: "no"
     ports:
       - "5431:5432"
     volumes:
-      - social_network_db_data:/var/lib/postgresql/data
+      - users_db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_secret
@@ -20,6 +25,29 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 5
+    networks:
+      - services-network
+
+  posts_db:
+    image: postgres:17.5
+    restart: "no"
+    ports:
+      - "5433:5432"
+    volumes:
+      - posts_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secret
+      POSTGRES_DB: posts_db
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    networks:
+      - services-network
+
   pgadmin:
     image: dpage/pgadmin4:9.5.0
     restart: "no"
@@ -41,3 +69,4 @@ services:
       start_period: 10s
       retries: 5
     entrypoint: /bin/sh -c "chmod 600 /pgadmin4/pgpass; /entrypoint.sh;"
+

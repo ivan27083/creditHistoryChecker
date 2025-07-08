@@ -9,6 +9,5 @@ import java.time.LocalDate;
 public class UserDto {
     Integer id;
     String username;
-    String email;
     LocalDate created_at;
 }

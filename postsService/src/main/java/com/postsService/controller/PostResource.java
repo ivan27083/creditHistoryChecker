@@ -1,13 +1,16 @@
 package com.postsService.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.postsService.model.ImgBBResponse;
 import com.postsService.model.Post;
+import com.postsService.service.ImgBBService;
 import com.postsService.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,6 +21,8 @@ import java.util.List;
 public class PostResource {
 
     private final PostService postService;
+
+    private final ImgBBService imgBBService;
 
     @GetMapping
     public PagedModel<Post> getAll(Pageable pageable) {
@@ -58,5 +63,20 @@ public class PostResource {
     @DeleteMapping
     public void deleteMany(@RequestParam List<Integer> ids) {
         postService.deleteMany(ids);
+    }
+
+    @DeleteMapping("/{deleteUrl}")
+    public void deleteImage(@PathVariable String deleteUrl) {
+        imgBBService.deleteImage(deleteUrl);
+    }
+
+    @GetMapping("/{imageUrl}")
+    public boolean isImageAvailable(@PathVariable String imageUrl) {
+        return imgBBService.isImageAvailable(imageUrl);
+    }
+
+    @GetMapping
+    public ImgBBResponse uploadImage(@RequestParam MultipartFile file) throws IOException {
+        return imgBBService.uploadImage(file);
     }
 }

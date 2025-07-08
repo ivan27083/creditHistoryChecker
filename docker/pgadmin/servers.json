@@ -2,10 +2,20 @@
   "Servers" : {
     "1" : {
       "Group" : "Servers",
-      "Name" : "social_network_db",
-      "Host" : "socialnetwork-social_network_db-1",
-      "Port" : 5431,
+      "Name" : "users_db",
+      "Host" : "users_db",
+      "Port" : 5432,
       "MaintenanceDB" : "users_db",
+      "Username" : "postgres",
+      "PassFile" : "/pgadmin4/pgpass",
+      "SSLMode" : "prefer"
+    },
+    "2" : {
+      "Group" : "Servers",
+      "Name" : "posts_db",
+      "Host" : "posts_db",
+      "Port" : 5432,
+      "MaintenanceDB" : "posts_db",
       "Username" : "postgres",
       "PassFile" : "/pgadmin4/pgpass",
       "SSLMode" : "prefer"
