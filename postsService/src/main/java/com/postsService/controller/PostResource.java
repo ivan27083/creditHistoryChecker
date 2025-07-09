@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/posts")
@@ -70,12 +71,12 @@ public class PostResource {
         imgBBService.deleteImage(deleteUrl);
     }
 
-    @GetMapping("/{imageUrl}")
-    public boolean isImageAvailable(@PathVariable String imageUrl) {
-        return imgBBService.isImageAvailable(imageUrl);
+    @PostMapping("/imageCheck")
+    public boolean isImageAvailable(@RequestBody Map<String, String> map) {
+        return imgBBService.isImageAvailable(map.get("imageUrl"));
     }
 
-    @GetMapping
+    @PostMapping("/upload")
     public ImgBBResponse uploadImage(@RequestParam MultipartFile file) throws IOException {
         return imgBBService.uploadImage(file);
     }

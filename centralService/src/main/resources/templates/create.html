@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Создать пост</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<h1>Создать пост</h1>
+<form action="/create" method="post" enctype="multipart/form-data">
+    <label>Заголовок:</label><br>
+    <input type="text" name="title" required><br>
+
+    <label>Текст:</label><br>
+    <textarea name="text"></textarea><br>
+
+    <label>Изображения (до 9):</label><br>
+    <input type="file" name="images" accept="image/*" multiple><br><br>
+
+    <button type="submit">Создать пост</button>
+</form>
+</body>
+</html>

@@ -1,6 +1,6 @@
 FROM bellsoft/liberica-openjre-alpine:24-cds AS layers
 WORKDIR /application
-COPY userService/build/libs/*.jar app.jar
+COPY postsService/build/libs/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 FROM bellsoft/liberica-openjre-alpine:24-cds

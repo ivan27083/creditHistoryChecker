@@ -11,6 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PostRepository extends JpaRepository<Post, Integer> {
     @Transactional
     @Modifying
-    @Query("DELETE FROM Image i WHERE i.post.id = :postId AND i.imageUrl = :imageUrl")
+    @Query("DELETE FROM Image i WHERE i.post.id = :postId AND i.url = :url")
     void deleteImageFromPost(@Param("postId") Integer postId, @Param("imageUrl") String imageUrl);
 }

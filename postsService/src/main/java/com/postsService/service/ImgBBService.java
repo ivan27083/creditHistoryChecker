@@ -15,11 +15,7 @@ public class ImgBBService {
     private static final String API_KEY = "bed8f48265b41a7f5d1e3d7878e9a70e";
     private static final String UPLOAD_URL = "https://api.imgbb.com/1/upload";
 
-    private final RestTemplate restTemplate;
-
-    public ImgBBService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public ImgBBResponse uploadImage(MultipartFile file) throws IOException {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();

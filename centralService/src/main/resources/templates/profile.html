@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <meta charset="UTF-8">
+    <title>Профиль</title>
+</head>
+<body>
+<h1 th:text="${user.username}">Username</h1>
+<p>Зарегистрирован: <span th:text="${user.created_at}"></span></p>
+<p>Подписчиков: <span th:text="${subscriberCount}"></span></p>
+
+<h2>Мои посты</h2>
+<div th:each="post : ${posts}">
+    <h4 th:text="${post.title}"></h4>
+    <p th:text="${post.text}"></p>
+    <p><i th:text="${#temporals.format(post.createdAt, 'dd.MM.yyyy HH:mm')}"></i></p>
+
+    <div class="post-images">
+        <img th:each="image : ${post.images}"
+             th:src="${image.url}"
+             style="max-width: 300px; margin: 5px;" />
+    </div>
+    <hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <meta charset="UTF-8">
+    <title>Лента</title>
+</head>
+<body>
+<h1>Лента постов</h1>
+<div th:each="post : ${posts}">
+    <h2 th:text="${post.title}"></h2>
+    <p th:text="${post.text}"></p>
+    <p><i th:text="${#temporals.format(post.createdAt, 'dd.MM.yyyy HH:mm')}"></i></p>
+
+    <div class="post-images">
+        <img th:each="image : ${post.images}"
+             th:src="${image.url}"
+             style="max-width: 300px; margin: 5px;" />
+    </div>
+    <hr>
+</div>
+<a href="/profile">Мой профиль</a> |
+<a href="/create">Создать пост</a>
+</body>
+</html>
