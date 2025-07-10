@@ -102,10 +102,11 @@ public class CentralResource {
     }
 
     @GetMapping("/create")
-    public String createPage(HttpSession session) {
+    public String createPage(HttpSession session, Model model) {
         if (session.getAttribute("token") == null) {
             return "redirect:/login";
         }
+        model.addAttribute("post", new PostDto());
         return "create";
     }
 
