@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
     @Transactional
@@ -16,4 +17,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     void deleteImageFromPost(@Param("postId") Integer postId, @Param("imageUrl") String imageUrl);
 
     List<Post> findByUserId(Integer userId);
+
+    @Override
+    Optional<Post> findById(Integer integer);
 }

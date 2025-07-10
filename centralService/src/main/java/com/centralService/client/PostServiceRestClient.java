@@ -92,20 +92,41 @@ public class PostServiceRestClient {
         return response.getBody();
     }
 
-    public PostDto patch(Integer id, JsonNode patchNode) {
-        String url = postServiceUrl + "/posts/" + id;
+    public PostDto updatePostWithImages(PostDto postDto, List<MultipartFile> newImages, String token) throws IOException {
+        String url = postServiceUrl + "/posts/" + postDto.getId();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setBearerAuth(token);
 
-        HttpEntity<JsonNode> request = new HttpEntity<>(patchNode, headers);
-        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.PATCH, request, PostDto.class);
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("post", postDtoAsJson(postDto));
+
+        for (MultipartFile file : newImages) {
+            if (!file.isEmpty()) {
+                body.add("images", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            }
+        }
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.PUT, request, PostDto.class);
+
         return response.getBody();
     }
 
     public void deletePost(Integer id) {
         String url = postServiceUrl + "/posts/" + id;
         restTemplate.delete(url);
+    }
+
+    public void deleteImagesByPostId(Integer postId, String token) {
+        String url = postServiceUrl + "/posts/" + postId + "/images";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
     }
 
     public void deleteMany(List<Integer> ids) {

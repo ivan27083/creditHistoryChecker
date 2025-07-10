@@ -9,6 +9,7 @@ import com.postsService.model.PostDto;
 import com.postsService.repository.ImageRepository;
 import com.postsService.service.ImgBBService;
 import com.postsService.service.PostService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -92,14 +93,50 @@ public class PostResource {
         return ResponseEntity.ok(savedPost);
     }
 
-    @PatchMapping("/{id}")
-    public Post patch(@PathVariable Integer id, @RequestBody JsonNode patchNode) throws IOException {
-        return postService.patch(id, patchNode);
+    @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Post> updatePostWithImages(
+            @PathVariable Integer postId,
+            @RequestPart("post") String postJson,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        Post post = mapper.readValue(postJson, Post.class);
+        post.setId(postId);
+
+        return updatePost(post, images);
     }
 
-    @PatchMapping
-    public List<Integer> patchMany(@RequestParam List<Integer> ids, @RequestBody JsonNode patchNode) throws IOException {
-        return postService.patchMany(ids, patchNode);
+    private ResponseEntity<Post> updatePost(Post post, List<MultipartFile> images){
+        Post existingPost = postService.findById(post.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Пост не найден"));
+
+        existingPost.setTitle(post.getTitle());
+        existingPost.setText(post.getText());
+
+        List<Image> oldImages = existingPost.getImages();
+        for (Image oldImage : oldImages) {
+            try {
+                imgBBService.deleteImage(oldImage.getDelete_url());
+            } catch (Exception e) {
+                log.warn("Ошибка при удалении изображения: {}", oldImage.getDelete_url(), e);
+            }
+        }
+        imageRepository.deleteAll(oldImages);
+
+        Post updatedPost = postService.update(existingPost);
+
+        if (images != null) {
+            for (MultipartFile file : images) {
+                ImgBBResponse response = imgBBService.uploadImage(file);
+                Image image = new Image();
+                image.setUrl(response.getData().getUrl());
+                image.setDelete_url(response.getData().getDelete_url());
+                image.setPost(updatedPost);
+                imageRepository.save(image);
+            }
+        }
+
+        return ResponseEntity.ok(updatedPost);
     }
 
     @DeleteMapping("/{id}")
@@ -134,6 +171,12 @@ public class PostResource {
     @DeleteMapping("/url/{deleteUrl}")
     public void deleteImage(@PathVariable String deleteUrl) {
         imgBBService.deleteImage(deleteUrl);
+    }
+
+    @DeleteMapping("/posts/{postId}/images")
+    public ResponseEntity<Void> deleteImages(@PathVariable Integer postId) {
+        imageRepository.deleteByPostId(postId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/imageCheck")

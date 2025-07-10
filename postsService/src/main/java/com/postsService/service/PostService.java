@@ -34,10 +34,6 @@ public class PostService {
         return postRepository.findAll();
     }
 
-    public Post save(Post post) {
-        return postRepository.save(post);
-    }
-
     public Page<Post> getAll(Pageable pageable) {
         return postRepository.findAll(pageable);
     }
@@ -96,5 +92,13 @@ public class PostService {
         return posts.stream()
                 .map(postMapper::toPostDto)
                 .toList();
+    }
+
+    public Optional<Post> findById(Integer integer) {
+        return postRepository.findById(integer);
+    }
+
+    public Post update(Post existingPost) {
+        return postRepository.save(existingPost);
     }
 }

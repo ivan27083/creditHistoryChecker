@@ -5,6 +5,7 @@ import com.userService.model.UserDto;
 import com.userService.repository.UserRepository;
 import com.userService.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/subscriptions")
 @RequiredArgsConstructor
@@ -69,15 +71,21 @@ public class SubscriptionController {
     @GetMapping("/check/{userId}")
     public ResponseEntity<Boolean> isSubscribed(
             @PathVariable Integer userId,
-            Principal principal) {
-        if (principal == null) {
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.info("Unauthorized access attempt to check subscription for userId {}", userId);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String currentUsername = principal.getName();
+        String currentUsername = authentication.getName();
+        log.info("Checking subscription status: currentUser='{}', targetUserId={}", currentUsername, userId);
 
-        boolean subscribed = subscriptionService.isSubscribed(currentUsername, userId);
-
-        return ResponseEntity.ok(subscribed);
+        try {
+            boolean subscribed = subscriptionService.isSubscribed(currentUsername, userId);
+            return ResponseEntity.ok(subscribed);
+        } catch (Exception e) {
+            log.error("Error checking subscription for user '{}', target userId {}: {}", currentUsername, userId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.centralService.util;
 
 import org.springframework.core.io.InputStreamResource;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 public class MultipartInputStreamFileResource extends InputStreamResource {
@@ -20,7 +19,7 @@ public class MultipartInputStreamFileResource extends InputStreamResource {
     }
 
     @Override
-    public long contentLength() throws IOException {
-        return -1; // Unknown content length
+    public long contentLength(){
+        return -1;
     }
 }

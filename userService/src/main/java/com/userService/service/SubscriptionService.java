@@ -58,8 +58,8 @@ public class SubscriptionService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    public boolean isSubscribed(String currentUsername, Integer targetUserId) {
-        User currentUser = userRepository.findByUsername(currentUsername)
+    public boolean isSubscribed(String currentUserEmail, Integer targetUserId) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));

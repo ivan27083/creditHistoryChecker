@@ -17,6 +17,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -41,10 +42,7 @@ public class CentralResource {
             model.addAttribute("posts", posts);
             return "index";
         }
-        catch (HttpClientErrorException.Unauthorized e) {
-            return "redirect:/login";
-        }
-        catch (UnauthorizedException e) {
+        catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         }
         catch (Exception e) {
@@ -65,12 +63,10 @@ public class CentralResource {
             model.addAttribute("posts", posts);
             return "profile";
         }
-        catch (HttpClientErrorException.Unauthorized e) {
+        catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         }
-        catch (UnauthorizedException e) {
-            return "redirect:/login";
-        } catch (Exception e) {
+        catch (Exception e) {
             model.addAttribute("error", "Ошибка загрузки профиля: " + e.getMessage());
             return "error";
         }
@@ -96,10 +92,7 @@ public class CentralResource {
             model.addAttribute("subscribed", subscribed);
             return "user-profile";
         }
-        catch (HttpClientErrorException.Unauthorized e) {
-            return "redirect:/login";
-        }
-        catch (UnauthorizedException e) {
+        catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         }
         catch (Exception e) {
@@ -131,25 +124,45 @@ public class CentralResource {
             postDto.setText(text);
             postDto.setUserId(user.getId());
 
-            if (images != null && images.length > 0) {
-                List<PostDto.ImageDto> imageDtos = new ArrayList<>();
-                for (MultipartFile image : images) {
-                    if (!image.isEmpty()) {
-                        ImgBBResponse response = postClient.uploadImage(image);
-                        imageDtos.add(new PostDto.ImageDto(response.getData().getUrl(), response.getData().getDelete_url()));
-                    }
-                }
-                postDto.setImages(imageDtos);
-            }
+            postClient.createPostWithImages(postDto, images != null ? List.of(images) : Collections.emptyList());
 
-            postClient.createPostWithImages(postDto, List.of(images));
             return "redirect:/profile";
-        }
-        catch (UnauthorizedException e) {
+        } catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             model.addAttribute("error", "Ошибка создания поста: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @GetMapping("/post/edit/{postId}")
+    public String editPostForm(@PathVariable Integer postId,
+                               Model model) {
+        PostDto post = postClient.getOne(postId);
+        model.addAttribute("post", post);
+        return "create";
+    }
+
+    @PostMapping(value = "/post/edit/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String editPost(@PathVariable Integer postId,
+                           @RequestParam String title,
+                           @RequestParam(required = false) String text,
+                           @RequestParam(required = false) MultipartFile[] newImages,
+                           HttpSession session,
+                           Model model) {
+        try {
+            String token = getSessionToken(session);
+
+            PostDto postDto = new PostDto();
+            postDto.setId(postId);
+            postDto.setTitle(title);
+            postDto.setText(text);
+
+            postClient.updatePostWithImages(postDto, newImages != null ? List.of(newImages) : Collections.emptyList(), token);
+
+            return "redirect:/profile";
+        } catch (Exception e) {
+            model.addAttribute("error", "Ошибка редактирования поста: " + e.getMessage());
             return "error";
         }
     }
@@ -161,7 +174,7 @@ public class CentralResource {
             postClient.deletePost(id);
             return "redirect:/profile";
         }
-        catch (UnauthorizedException e) {
+        catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         }
         catch (Exception e) {
@@ -184,7 +197,7 @@ public class CentralResource {
             String token = getSessionToken(session);
             subscriptionClient.subscribe(userId, token);
             return "redirect:/user/" + userId;
-        } catch (UnauthorizedException e) {
+        } catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         } catch (Exception e) {
             return "redirect:/user/" + userId + "?error=sub";
@@ -197,7 +210,7 @@ public class CentralResource {
             String token = getSessionToken(session);
             subscriptionClient.unsubscribe(userId, token);
             return "redirect:/user/" + userId;
-        } catch (UnauthorizedException e) {
+        } catch (HttpClientErrorException.Unauthorized | UnauthorizedException e) {
             return "redirect:/login";
         } catch (Exception e) {
             return "redirect:/user/" + userId + "?error=unsub";

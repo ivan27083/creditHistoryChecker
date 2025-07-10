@@ -55,6 +55,9 @@
                     <div class="post-images d-flex flex-wrap">
                         <img th:each="image : ${post.images}" th:src="${image.url}" class="img-thumbnail me-2"/>
                     </div>
+                    <form class="btn-update" th:action="@{'/post/edit/' + ${post.id}}" method="get">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Изменить</button>
+                    </form>
                     <form class="btn-delete" th:action="@{'/posts/' + ${post.id} + '/delete'}" method="post">
                         <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                     </form>
