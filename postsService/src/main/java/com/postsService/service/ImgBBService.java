@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 
 @Service
 public class ImgBBService {
@@ -17,7 +18,7 @@ public class ImgBBService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public ImgBBResponse uploadImage(MultipartFile file) throws IOException {
+    public ImgBBResponse uploadImage(MultipartFile file){
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("key", API_KEY);
         body.add("image", file.getResource());
@@ -54,10 +55,44 @@ public class ImgBBService {
     }
 
     public void deleteImage(String deleteUrl) {
+        if (deleteUrl == null || deleteUrl.isBlank()) {
+            throw new IllegalArgumentException("Delete URL не может быть пустым");
+        }
+
         try {
-            restTemplate.delete(deleteUrl);
+            URI uri = URI.create(deleteUrl);
+            String[] parts = uri.getPath().split("/");
+            if (parts.length < 3) {
+                throw new IllegalArgumentException("Неверный формат deleteUrl");
+            }
+            String imageId = parts[1];
+            String imageHash = parts[2];
+
+            String url = "https://ibb.co/json";
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("pathname", "/" + imageId + "/" + imageHash);
+            body.add("action", "delete");
+            body.add("delete", "image");
+            body.add("from", "resource");
+            body.add("deleting[id]", imageId);
+            body.add("deleting[hash]", imageHash);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("Изображение успешно удалено с ImgBB");
+            } else {
+                throw new RuntimeException("Ошибка удаления изображения: HTTP " + response.getStatusCodeValue());
+            }
+
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка удаления изображения: " + e.getMessage());
+            throw new RuntimeException("Ошибка при удалении изображения с ImgBB: " + e.getMessage(), e);
         }
     }
 }

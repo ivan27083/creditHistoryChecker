@@ -1,15 +1,14 @@
 package com.centralService.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class ImgBBResponse {
-    private String imageUrl;
-    private String deleteUrl;
+    private ImageData data;
+
+    @lombok.Data
+    public static class ImageData {
+        private String url;
+        private String delete_url;
+    }
 }

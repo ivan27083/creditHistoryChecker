@@ -1,8 +1,6 @@
 package com.centralService.model;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
@@ -10,25 +8,27 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter
+@Setter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class PostDto {
     @NotNull
-    private final Integer id;
+    private Integer id;
     @NotNull
-    private final Integer userId;
+    private Integer userId;
     @NotBlank
-    private final String title;
-    private final String text;
-    private final List<ImageDto> images;
+    private String title;
+    private String text;
+    private List<ImageDto> images;
     @PastOrPresent
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt;
+    private String username;
 
     @AllArgsConstructor
     @Getter
     @EqualsAndHashCode
     public static class ImageDto {
-        private final Integer id;
         private final String url;
-        private final String deleteUrl;
+        private final String delete_url;
     }
 }

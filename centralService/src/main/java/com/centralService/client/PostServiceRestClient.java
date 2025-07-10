@@ -4,6 +4,7 @@ import com.centralService.model.ImgBBResponse;
 import com.centralService.model.PagedModel;
 import com.centralService.model.PostDto;
 import com.centralService.util.MultipartInputStreamFileResource;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,60 +29,122 @@ public class PostServiceRestClient {
     @Value("${post-service.url}")
     private String postServiceUrl;
 
-    public List<PostDto> getAllPosts() {
-        ResponseEntity<PagedModel<PostDto>> response =
-                restTemplate.exchange(
-                        postServiceUrl + "/posts",
-                        HttpMethod.GET,
-                        null,
-                        new ParameterizedTypeReference<PagedModel<PostDto>>() {}
-                );
-        return response.getBody().getContent();
+    public PagedModel<PostDto> getAllPaged(int page, int size) {
+        String url = postServiceUrl + "/posts?page=" + page + "&size=" + size;
+        ResponseEntity<PagedModel<PostDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>() {}
+        );
+        return response.getBody();
     }
 
     public List<PostDto> getPostsByUserId(Integer userId) {
-        // Предположим, что такой эндпоинт добавлен на стороне PostService
         String url = postServiceUrl + "/posts/user/" + userId;
         ResponseEntity<List<PostDto>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<PostDto>>() {}
+                new ParameterizedTypeReference<>() {}
         );
         return response.getBody();
     }
 
-    public void createPost(PostDto post, String token) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<PostDto> request = new HttpEntity<>(post, headers);
-
-        restTemplate.postForEntity(postServiceUrl + "/posts", request, Void.class);
+    public PostDto getOne(Integer postId) {
+        String url = postServiceUrl + "/posts/" + postId;
+        return restTemplate.getForObject(url, PostDto.class);
     }
 
-    public ImgBBResponse uploadImage(MultipartFile file, String token) throws IOException {
+    public List<PostDto> getMany(List<Integer> ids) {
+        String joined = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String url = postServiceUrl + "/posts/by-ids?ids=" + joined;
+        ResponseEntity<List<PostDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>() {}
+        );
+        return response.getBody();
+    }
+
+    public PostDto createPost(PostDto postDto) {
+        String url = postServiceUrl + "/posts";
+        return restTemplate.postForObject(url, postDto, PostDto.class);
+    }
+
+    public PostDto createPostWithImages(PostDto postDto, List<MultipartFile> files) throws IOException {
+        String url = postServiceUrl + "/posts";
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("post", postDtoAsJson(postDto));
+
+        for (MultipartFile file : files) {
+            body.add("images", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+        }
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<PostDto> response = restTemplate.postForEntity(url, request, PostDto.class);
+
+        return response.getBody();
+    }
+
+    public PostDto patch(Integer id, JsonNode patchNode) {
+        String url = postServiceUrl + "/posts/" + id;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(patchNode, headers);
+        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.PATCH, request, PostDto.class);
+        return response.getBody();
+    }
+
+    public void deletePost(Integer id) {
+        String url = postServiceUrl + "/posts/" + id;
+        restTemplate.delete(url);
+    }
+
+    public void deleteMany(List<Integer> ids) {
+        String joined = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String url = postServiceUrl + "/posts?ids=" + joined;
+        restTemplate.delete(url);
+    }
+
+    public boolean isImageAvailable(String imageUrl) {
+        String url = postServiceUrl + "/posts/imageCheck";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(Map.of("imageUrl", imageUrl), headers);
+        ResponseEntity<Boolean> response = restTemplate.postForEntity(url, request, Boolean.class);
+
+        return Boolean.TRUE.equals(response.getBody());
+    }
+
+    public ImgBBResponse uploadImage(MultipartFile file) throws IOException {
+        String url = postServiceUrl + "/posts/upload";
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
 
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        ResponseEntity<ImgBBResponse> response = restTemplate.exchange(
-                postServiceUrl + "/posts/upload",
-                HttpMethod.POST,
-                request,
-                ImgBBResponse.class
-        );
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<ImgBBResponse> response = restTemplate.postForEntity(url, request, ImgBBResponse.class);
 
         return response.getBody();
     }
 
-    public void deletePost(Integer postId) {
-        restTemplate.delete(postServiceUrl + "/posts/" + postId);
+    private HttpEntity<String> postDtoAsJson(PostDto postDto) throws IOException {
+        HttpHeaders jsonHeaders = new HttpHeaders();
+        jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(postDto);
+        return new HttpEntity<>(json, jsonHeaders);
     }
 }

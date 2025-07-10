@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Set;
@@ -22,16 +23,30 @@ public class SubscriptionRestClient {
     @Value("${user-service.url}")
     private String userServiceUrl;
 
-    public void subscribe(Integer subscriberId, Integer subscribedToId) {
-        String url = userServiceUrl + "/subscriptions/subscribe/" + subscribedToId;
-        HttpEntity<Void> request = new HttpEntity<>(createHeaders(subscriberId));
-        restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
+    public void subscribe(Integer userId, String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange(
+                userServiceUrl + "/subscriptions/subscribe/" + userId,
+                HttpMethod.POST,
+                entity,
+                Void.class
+        );
     }
 
-    public void unsubscribe(Integer subscriberId, Integer subscribedToId) {
-        String url = userServiceUrl + "/subscriptions/unsubscribe/" + subscribedToId;
-        HttpEntity<Void> request = new HttpEntity<>(createHeaders(subscriberId));
-        restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+    public void unsubscribe(Integer userId, String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange(
+                userServiceUrl + "/subscriptions/unsubscribe/" + userId,
+                HttpMethod.DELETE,
+                entity,
+                Void.class
+        );
     }
 
     public Set<UserDto> getSubscribers(Integer userId) {
@@ -60,6 +75,28 @@ public class SubscriptionRestClient {
         );
 
         return response.getBody();
+    }
+
+    public boolean isSubscribed(Integer userId, String token) {
+        String url = userServiceUrl + "/subscriptions/check/" + userId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Boolean> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    Boolean.class
+            );
+            return Boolean.TRUE.equals(response.getBody());
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка проверки подписки: " + e.getMessage(), e);
+        }
     }
 
     private HttpHeaders createHeaders(Integer userId) {

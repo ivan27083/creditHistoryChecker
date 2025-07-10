@@ -14,7 +14,7 @@ public class Image {
     private Integer id;
 
     private String url;
-    private String deleteUrl;
+    private String delete_url;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

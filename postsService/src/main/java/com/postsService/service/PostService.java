@@ -3,12 +3,14 @@ package com.postsService.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postsService.model.Post;
+import com.postsService.model.PostDto;
 import com.postsService.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -21,19 +23,19 @@ import java.util.Optional;
 public class PostService {
 
     private final PostRepository postRepository;
-
     private final ObjectMapper objectMapper;
+    private final PostMapper postMapper;
 
-    public void delete(Post entity) {
-        postRepository.delete(entity);
+    public void delete(Post post) {
+        postRepository.delete(post);
     }
 
     public List<Post> findAll() {
         return postRepository.findAll();
     }
 
-    public Post save(Post entity) {
-        return postRepository.save(entity);
+    public Post save(Post post) {
+        return postRepository.save(post);
     }
 
     public Page<Post> getAll(Pageable pageable) {
@@ -50,6 +52,7 @@ public class PostService {
         return postRepository.findAllById(ids);
     }
 
+    @Transactional
     public Post create(Post post) {
         return postRepository.save(post);
     }
@@ -86,5 +89,12 @@ public class PostService {
 
     public void deleteMany(List<Integer> ids) {
         postRepository.deleteAllById(ids);
+    }
+
+    public List<PostDto> findByUserId(Integer userId) {
+        List<Post> posts = postRepository.findByUserId(userId);
+        return posts.stream()
+                .map(postMapper::toPostDto)
+                .toList();
     }
 }

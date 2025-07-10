@@ -5,12 +5,14 @@ import com.userService.model.UserDto;
 import com.userService.repository.UserRepository;
 import com.userService.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,5 +64,20 @@ public class SubscriptionController {
         Set<User> subscribers = subscriptionService.getSubscribers(userId);
         Set<UserDto> dtos = subscribers.stream().map(UserDto::from).collect(Collectors.toSet());
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/check/{userId}")
+    public ResponseEntity<Boolean> isSubscribed(
+            @PathVariable Integer userId,
+            Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String currentUsername = principal.getName();
+
+        boolean subscribed = subscriptionService.isSubscribed(currentUsername, userId);
+
+        return ResponseEntity.ok(subscribed);
     }
 }

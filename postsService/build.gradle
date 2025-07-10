@@ -4,4 +4,6 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    compileOnly 'org.mapstruct:mapstruct:1.6.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.0'
 }

@@ -7,115 +7,201 @@ import com.centralService.exception.UnauthorizedException;
 import com.centralService.model.ImgBBResponse;
 import com.centralService.model.PostDto;
 import com.centralService.model.UserDto;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
 public class CentralResource {
-
     private final UserServiceRestClient userClient;
     private final PostServiceRestClient postClient;
     private final SubscriptionRestClient subscriptionClient;
 
-    @GetMapping({"/", "index", "home"})
-    public String index(Model model) {
-        List<PostDto> posts = postClient.getAllPosts();
-        model.addAttribute("posts", posts);
-        return "index";
-    }
+    @GetMapping({"/", "/index", "/home"})
+    public String index(Model model, HttpSession session) {
+        try {
+            String token = getSessionToken(session);
 
-    @GetMapping("/profile")
-    public String profile(Model model, HttpSession session) {
-        String token = (String) session.getAttribute("token");
-        if (token == null) {
+            List<PostDto> posts = postClient.getAllPaged(0, 20).getContent();
+            for (PostDto post : posts) {
+                if (post.getUsername() == null) {
+                    UserDto author = userClient.getUserById(post.getUserId(), token);
+                    post.setUsername(author.getUsername());
+                }
+            }
+            model.addAttribute("posts", posts);
+            return "index";
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
             return "redirect:/login";
         }
-
-        try {
-            UserDto user = userClient.getCurrentUser(token);
-            List<PostDto> posts = postClient.getPostsByUserId(user.getId());
-            int subscriberCount = user.getSubscriberIds().size();
-
-            model.addAttribute("user", user);
-            model.addAttribute("posts", posts);
-            model.addAttribute("subscriberCount", subscriberCount);
-            return "profile";
-        } catch (UnauthorizedException e) {
+        catch (UnauthorizedException e) {
             return "redirect:/login";
-        } catch (Exception e) {
-            model.addAttribute("message", e.getMessage());
+        }
+        catch (Exception e) {
+            model.addAttribute("error", "Ошибка загрузки данных. Попробуйте позже.");
             return "error";
         }
     }
 
-    @GetMapping("/user/{id}")
-    public String viewUser(@PathVariable Integer id, Model model) {
+    @GetMapping("/profile")
+    public String profile(Model model, HttpSession session) {
         try {
-            UserDto user = userClient.getUserById(id);
-            List<PostDto> posts = postClient.getPostsByUserId(id);
-            int subscriberCount = user.getSubscriberIds().size();
+            String token = getSessionToken(session);
+            UserDto user = userClient.getCurrentUser(token);
+            List<PostDto> posts = postClient.getPostsByUserId(user.getId());
 
             model.addAttribute("user", user);
+            model.addAttribute("subscriberCount", user.getSubscriberIds().size());
             model.addAttribute("posts", posts);
-            model.addAttribute("subscriberCount", subscriberCount);
-            return "user-profile";
+            return "profile";
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
+            return "redirect:/login";
+        }
+        catch (UnauthorizedException e) {
+            return "redirect:/login";
         } catch (Exception e) {
-            model.addAttribute("message", e.getMessage());
+            model.addAttribute("error", "Ошибка загрузки профиля: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @GetMapping("/user/{userId}")
+    public String viewUser(@PathVariable Integer userId, Model model, HttpSession session) {
+        try {
+            String token = getSessionToken(session);
+            UserDto currentUser = userClient.getCurrentUser(token);
+
+            if (currentUser.getId().equals(userId)) {
+                return "redirect:/profile";
+            }
+
+            UserDto user = userClient.getUserById(userId, token);
+            List<PostDto> posts = postClient.getPostsByUserId(userId);
+            boolean subscribed = subscriptionClient.isSubscribed(userId, token);
+
+            model.addAttribute("user", user);
+            model.addAttribute("subscriberCount", user.getSubscriberIds().size());
+            model.addAttribute("posts", posts);
+            model.addAttribute("subscribed", subscribed);
+            return "user-profile";
+        }
+        catch (HttpClientErrorException.Unauthorized e) {
+            return "redirect:/login";
+        }
+        catch (UnauthorizedException e) {
+            return "redirect:/login";
+        }
+        catch (Exception e) {
+            model.addAttribute("error", "Ошибка загрузки профиля пользователя: " + e.getMessage());
             return "error";
         }
     }
 
     @GetMapping("/create")
-    public String createPage() {
+    public String createPage(HttpSession session) {
+        if (session.getAttribute("token") == null) {
+            return "redirect:/login";
+        }
         return "create";
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String createPost(@RequestParam String title,
                              @RequestParam(required = false) String text,
                              @RequestParam(required = false) MultipartFile[] images,
-                             HttpServletRequest request,
+                             HttpSession session,
                              Model model) {
         try {
-            String token = extractToken(request);
+            String token = getSessionToken(session);
             UserDto user = userClient.getCurrentUser(token);
 
-            List<PostDto.ImageDto> imageDtos = new ArrayList<>();
-            if (images != null) {
-                int count = Math.min(images.length, 9);
-                for (int i = 0; i < count; i++) {
-                    MultipartFile image = images[i];
-                    ImgBBResponse response = postClient.uploadImage(image, token);
-                    imageDtos.add(new PostDto.ImageDto(null, response.getImageUrl(), response.getDeleteUrl()));
+            PostDto postDto = new PostDto();
+            postDto.setTitle(title);
+            postDto.setText(text);
+            postDto.setUserId(user.getId());
+
+            if (images != null && images.length > 0) {
+                List<PostDto.ImageDto> imageDtos = new ArrayList<>();
+                for (MultipartFile image : images) {
+                    if (!image.isEmpty()) {
+                        ImgBBResponse response = postClient.uploadImage(image);
+                        imageDtos.add(new PostDto.ImageDto(response.getData().getUrl(), response.getData().getDelete_url()));
+                    }
                 }
+                postDto.setImages(imageDtos);
             }
 
-            PostDto post = new PostDto(null, user.getId(), title, text, imageDtos, LocalDateTime.now());
-            postClient.createPost(post, token);
-
-            return "redirect:/";
-        } catch (Exception e) {
-            model.addAttribute("message", e.getMessage());
+            postClient.createPostWithImages(postDto, List.of(images));
+            return "redirect:/profile";
+        }
+        catch (UnauthorizedException e) {
+            return "redirect:/login";
+        }
+        catch (Exception e) {
+            model.addAttribute("error", "Ошибка создания поста: " + e.getMessage());
             return "error";
         }
     }
 
-    private String extractToken(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new IllegalStateException("Missing or invalid Authorization header");
+    @PostMapping("/posts/{id}/delete")
+    public String deletePost(@PathVariable Integer id, HttpSession session, Model model) {
+        try {
+            String token = getSessionToken(session);
+            postClient.deletePost(id);
+            return "redirect:/profile";
         }
-        return header.substring(7);
+        catch (UnauthorizedException e) {
+            return "redirect:/login";
+        }
+        catch (Exception e) {
+            model.addAttribute("error", "Ошибка при удалении поста: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    private String getSessionToken(HttpSession session) {
+        String token = (String) session.getAttribute("token");
+        if (token == null) {
+            throw new UnauthorizedException("Требуется авторизация");
+        }
+        return token;
+    }
+
+    @PostMapping("/subscribe/{userId}")
+    public String subscribe(@PathVariable Integer userId, HttpSession session) {
+        try {
+            String token = getSessionToken(session);
+            subscriptionClient.subscribe(userId, token);
+            return "redirect:/user/" + userId;
+        } catch (UnauthorizedException e) {
+            return "redirect:/login";
+        } catch (Exception e) {
+            return "redirect:/user/" + userId + "?error=sub";
+        }
+    }
+
+    @PostMapping("/unsubscribe/{userId}")
+    public String unsubscribe(@PathVariable Integer userId, HttpSession session) {
+        try {
+            String token = getSessionToken(session);
+            subscriptionClient.unsubscribe(userId, token);
+            return "redirect:/user/" + userId;
+        } catch (UnauthorizedException e) {
+            return "redirect:/login";
+        } catch (Exception e) {
+            return "redirect:/user/" + userId + "?error=unsub";
+        }
     }
 }
 

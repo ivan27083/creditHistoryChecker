@@ -4,6 +4,7 @@ import com.userService.model.User;
 import com.userService.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,5 +56,14 @@ public class SubscriptionService {
         return userRepository.findById(userId)
                 .map(User::getSubscribers)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
+
+    public boolean isSubscribed(String currentUsername, Integer targetUserId) {
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+
+        return userRepository.existsSubscription(currentUser.getId(), targetUser.getId());
     }
 }

@@ -9,6 +9,6 @@ public class ImgBBResponse {
     @lombok.Data
     public static class ImageData {
         private String url;
-        private String deleteUrl;
+        private String delete_url;
     }
 }

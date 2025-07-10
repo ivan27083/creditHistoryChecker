@@ -21,8 +21,17 @@ public class UserServiceRestClient {
     @Value("${user-service.url}")
     private String userServiceUrl;
 
-    public UserDto getUserById(Integer id) {
-        return restTemplate.getForObject(userServiceUrl + "/users/" + id, UserDto.class);
+    public UserDto getUserById(Integer id, String token) {
+        HttpHeaders headers = createAuthHeaders(token);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        return restTemplate.exchange(
+                userServiceUrl + "/users/{id}",
+                HttpMethod.GET,
+                request,
+                UserDto.class,
+                id
+        ).getBody();
     }
 
     public List<UserDto> getAllUsers() {
@@ -96,5 +105,11 @@ public class UserServiceRestClient {
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new UnauthorizedException("User not authorized");
         }
+    }
+
+    private HttpHeaders createAuthHeaders(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        return headers;
     }
 }
